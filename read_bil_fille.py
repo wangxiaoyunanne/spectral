@@ -33,8 +33,59 @@ for i in range(len(files)):
     #print img_set[test_index].shape
 
 # change output as categorical data    
+# change output as categorical data    
 Y_train = np_utils.to_categorical(Y_train)
 Y_test = np_utils.to_categorical(Y_test)
-#for i in range(len(files)/2):
+X_train= numpy.zeros(0)
+for i in range(0,60):
+    print i
+   # length = imgs_train[i].shape[0]
+   # width = imgs_train[i].shape[1]
+   # dim = imgs_train[i].shape[2]
+    # reshape img, HORIZONTALLY strench the img, without changing the spectral dim.
+   # reshaped_img = numpy.asarray(imgs_train[i].reshape(length*width, dim), 
+   #                              dtype=theano.config.floatX)
+   # pca = PCA(n_components=n_principle)
+   # reshaped_img   
+   # pca_img = pca.fit_transform(reshaped_img)
+    PCA_img,_,_ = PCA_tramsform_img(imgs_train[i])
+    X_train = numpy.append(X_train,PCA_img)
+
+X_test = numpy.zeros(0)
+for i in range (0,30):
+    print i
+    PCA_img,_,_ = PCA_tramsform_img(imgs_test[i])
+    X_test = numpy.append(X_test,PCA_img)
+
+
+
+
+seed = 7
+numpy.random.seed(seed)
+
+
+X_train = X_train.reshape(60,3,50,60)
+X_test = X_test.reshape(30,3,50,60)
+
+def larger_model():
+    model = Sequential()
+    model.add(Convolution2D(60,8,8,border_mode  ='valid',input_shape = (3,50,60)  ,activation='relu'))
+    model.add(MaxPooling2D(pool_size = (4,4)))
+    model.add(Convolution2D(30,5,5,border_mode  ='valid',input_shape = (3,50,60)  ,activation='relu'))
+    model.add(MaxPooling2D(pool_size = (2,2)))
+    model.add(Dropout(0.04))
+    model.add(Flatten())
+    model.add(Dense(128, activation = 'relu'))
+    model.add(Dense (50,activation = 'relu'))
+    model.add(Dense(15,activation = 'softmax'))
+    model.compile(loss = 'categorical_crossentropy',optimizer ='adam',metrics=['accuracy'])
+    return model
+
+
+model = larger_model()
+model.fit(X_train,Y_train,validation_data = (X_test,Y_test), nb_epoch = 10, batch_size = 200, verbose = 2)
+scores =  model.evaluate(X_test,Y_test,verbose = 0)
+print ('err %.2f%%' % (100-scores[1]*100))
+                                              
                                                               1,1           Top
 
